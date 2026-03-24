@@ -69,13 +69,18 @@ bool MainWindow::Create() {
     RegisterWindowClass();
     CreateFonts();
 
+    const int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    const int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+    const int windowX = (screenWidth - AppConfig::kMainWidth) / 2;
+    const int windowY = (screenHeight - AppConfig::kMainHeight) / 2;
+
     hwnd_ = CreateWindowExW(
         0,
         kClassName,
         LoadText(1100).c_str(),
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
+        windowX,
+        windowY,
         AppConfig::kMainWidth,
         AppConfig::kMainHeight,
         nullptr,
