@@ -1,0 +1,58 @@
+﻿#pragma code_page(65001)
+#include "resource.h"
+
+IDI_APP_ICON ICON "icon.ico"
+
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE      "倒计时"
+    IDS_TOTAL_LABEL    "总倒计时时长:"
+    IDS_TIME_SECTION   "增加倒计时时长"
+    IDS_RESET          "重置"
+    IDS_LOOP_MODE      "循环模式"
+    IDS_STOP           "停止"
+    IDS_START          "开始计时"
+    IDS_ALERT_TITLE    "提醒"
+    IDS_ALERT_MESSAGE  "计时时间到！"
+    IDS_ALERT_ACK      "我知道了"
+    IDS_PAUSE          "暂停计时"
+    IDS_RESUME         "继续计时"
+    IDS_CREATE_FAILED  "主窗口创建失败。"
+    IDS_TRAY_SHOW      "显示主界面"
+    IDS_TRAY_EXIT      "退出"
+
+    IDS_TIME_1S        "+1s"
+    IDS_TIME_5S        "+5s"
+    IDS_TIME_10S       "+10s"
+    IDS_TIME_1M        "+1m"
+    IDS_TIME_5M        "+5m"
+    IDS_TIME_15M       "+15m"
+END
+
+1 VERSIONINFO
+FILEVERSION 1,0,0,0
+PRODUCTVERSION 1,0,0,0
+FILEFLAGSMASK 0x3fL
+FILEFLAGS 0x0L
+FILEOS 0x40004L
+FILETYPE 0x1L
+FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404B0"
+        BEGIN
+            VALUE "CompanyName", "\0"
+            VALUE "FileDescription", "倒计时\0"
+            VALUE "FileVersion", "1.0.0.0\0"
+            VALUE "InternalName", "倒计时\0"
+            VALUE "OriginalFilename", "倒计时.exe\0"
+            VALUE "ProductName", "倒计时\0"
+            VALUE "ProductVersion", "1.0.0.0\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 1200
+    END
+END
