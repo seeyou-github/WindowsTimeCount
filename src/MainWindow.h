@@ -80,6 +80,7 @@ private:
     HFONT uiFont_;
     HFONT titleFont_;
     HFONT totalFont_;
+    HBRUSH backgroundBrush_;
     HICON largeIcon_;
     HICON smallIcon_;
     bool trayIconAdded_;

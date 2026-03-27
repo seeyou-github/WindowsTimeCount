@@ -10,6 +10,15 @@ AlertWindow::~AlertWindow() {
     if (hwnd_ != nullptr) {
         DestroyWindow(hwnd_);
     }
+    if (buttonFont_ != nullptr) {
+        DeleteObject(buttonFont_);
+    }
+    if (iconFont_ != nullptr) {
+        DeleteObject(iconFont_);
+    }
+    if (textFont_ != nullptr) {
+        DeleteObject(textFont_);
+    }
 }
 
 void AlertWindow::RegisterWindowClass() {
@@ -23,7 +32,7 @@ void AlertWindow::RegisterWindowClass() {
     wc.lpfnWndProc = StaticWindowProc;
     wc.hInstance = instance_;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-    wc.hbrBackground = CreateSolidBrush(AppConfig::kAlertBackground);
+    wc.hbrBackground = nullptr;
     wc.lpszClassName = kClassName;
     RegisterClassExW(&wc);
     registered = true;
@@ -35,7 +44,6 @@ void AlertWindow::Show(HWND owner, const std::wstring& title, const std::wstring
     buttonText_ = buttonText;
 
     if (hwnd_ == nullptr) {
-        // 提醒窗口只创建一次，后续重复使用，避免每次到时重复注册和销毁窗口类。
         RegisterWindowClass();
         const int width = 800;
         const int height = 500;
@@ -63,6 +71,16 @@ void AlertWindow::Show(HWND owner, const std::wstring& title, const std::wstring
             reinterpret_cast<HMENU>(static_cast<INT_PTR>(kButtonId)),
             instance_,
             nullptr);
+
+        if (buttonFont_ == nullptr) {
+            buttonFont_ = Theme::CreateUiFont(-22);
+        }
+        if (iconFont_ == nullptr) {
+            iconFont_ = Theme::CreateUiFont(-60, FW_BOLD, L"Segoe UI Emoji");
+        }
+        if (textFont_ == nullptr) {
+            textFont_ = Theme::CreateUiFont(-50, FW_BOLD);
+        }
     } else {
         SetWindowTextW(hwnd_, title_.c_str());
         SetWindowTextW(button_, buttonText_.c_str());
@@ -110,9 +128,7 @@ LRESULT AlertWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
             FrameRect(drawItem->hDC, &drawItem->rcItem, borderBrush);
             DeleteObject(borderBrush);
 
-            HFONT font = Theme::CreateUiFont(-22);
-            Theme::DrawCenteredText(drawItem->hDC, drawItem->rcItem, buttonText_, RGB(0xff, 0xff, 0xff), font);
-            DeleteObject(font);
+            Theme::DrawCenteredText(drawItem->hDC, drawItem->rcItem, buttonText_, RGB(0xff, 0xff, 0xff), buttonFont_);
             return TRUE;
         }
         break;
@@ -134,19 +150,13 @@ LRESULT AlertWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
 void AlertWindow::Paint(HDC dc) {
     RECT client{};
     GetClientRect(hwnd_, &client);
-    // 大红色弹窗用于在非循环模式下提供明显到时提醒。
     Theme::FillSolidRect(dc, client, AppConfig::kAlertBackground);
 
-    RECT iconRect{ 0, 35, client.right, 130 };
-    RECT textRect{ 40, 150, client.right - 40, 290 };
+    RECT iconRect{0, 35, client.right, 130};
+    RECT textRect{40, 150, client.right - 40, 290};
 
-    HFONT iconFont = Theme::CreateUiFont(-60, FW_BOLD, L"Segoe UI Emoji");
-    Theme::DrawCenteredText(dc, iconRect, L"⏰", RGB(0xff, 0xff, 0xff), iconFont);
-    DeleteObject(iconFont);
-
-    HFONT textFont = Theme::CreateUiFont(-50, FW_BOLD);
-    Theme::DrawCenteredText(dc, textRect, message_, RGB(0xff, 0xff, 0xff), textFont);
-    DeleteObject(textFont);
+    Theme::DrawCenteredText(dc, iconRect, L"!", RGB(0xff, 0xff, 0xff), iconFont_);
+    Theme::DrawCenteredText(dc, textRect, message_, RGB(0xff, 0xff, 0xff), textFont_);
 }
 
 void AlertWindow::Layout() {

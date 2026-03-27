@@ -12,6 +12,9 @@ OverlayWindow::~OverlayWindow() {
     if (hwnd_ != nullptr) {
         DestroyWindow(hwnd_);
     }
+    if (overlayFont_ != nullptr) {
+        DeleteObject(overlayFont_);
+    }
 }
 
 void OverlayWindow::RegisterWindowClass() {
@@ -25,7 +28,7 @@ void OverlayWindow::RegisterWindowClass() {
     wc.lpfnWndProc = StaticWindowProc;
     wc.hInstance = instance_;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-    wc.hbrBackground = CreateSolidBrush(RGB(0x10, 0x10, 0x10));
+    wc.hbrBackground = nullptr;
     wc.lpszClassName = kClassName;
     wc.style = CS_HREDRAW | CS_VREDRAW;
     RegisterClassExW(&wc);
@@ -55,6 +58,10 @@ bool OverlayWindow::Create(HWND owner) {
 
     if (hwnd_ == nullptr) {
         return false;
+    }
+
+    if (overlayFont_ == nullptr) {
+        overlayFont_ = Theme::CreateMonoFont(-100, FW_BOLD);
     }
 
     SetLayeredWindowAttributes(hwnd_, 0, AppConfig::kOverlayAlpha, LWA_ALPHA);
@@ -89,16 +96,17 @@ void OverlayWindow::UpdateLayout() {
     if (hwnd_ == nullptr) {
         return;
     }
+    if (overlayFont_ == nullptr) {
+        overlayFont_ = Theme::CreateMonoFont(-100, FW_BOLD);
+    }
 
     HDC dc = GetDC(hwnd_);
-    HFONT overlayFont = Theme::CreateMonoFont(-100, FW_BOLD);
-    HGDIOBJ oldFont = SelectObject(dc, overlayFont);
+    HGDIOBJ oldFont = SelectObject(dc, overlayFont_);
 
     RECT textRect{0, 0, 0, 0};
     DrawTextW(dc, timeText_.c_str(), -1, &textRect, DT_CALCRECT | DT_SINGLELINE);
 
     SelectObject(dc, oldFont);
-    DeleteObject(overlayFont);
     ReleaseDC(hwnd_, dc);
 
     int width = (textRect.right - textRect.left) + AppConfig::kOverlayPaddingX * 2;
@@ -163,9 +171,7 @@ void OverlayWindow::Paint(HDC dc) {
         timeRect.bottom -= 32;
     }
 
-    HFONT overlayFont = Theme::CreateMonoFont(-100, FW_BOLD);
-    Theme::DrawCenteredText(dc, timeRect, timeText_, AppConfig::kOverlayTextColor, overlayFont);
-    DeleteObject(overlayFont);
+    Theme::DrawCenteredText(dc, timeRect, timeText_, AppConfig::kOverlayTextColor, overlayFont_);
 
     if (!AppConfig::kShowProgressBar || totalSeconds_ <= 0) {
         return;

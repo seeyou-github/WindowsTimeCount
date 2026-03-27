@@ -42,6 +42,7 @@ MainWindow::MainWindow(HINSTANCE instance)
       uiFont_(nullptr),
       titleFont_(nullptr),
       totalFont_(nullptr),
+      backgroundBrush_(nullptr),
       largeIcon_(nullptr),
       smallIcon_(nullptr),
       trayIconAdded_(false),
@@ -60,6 +61,9 @@ MainWindow::~MainWindow() {
     }
     if (smallIcon_ != nullptr) {
         DestroyIcon(smallIcon_);
+    }
+    if (backgroundBrush_ != nullptr) {
+        DeleteObject(backgroundBrush_);
     }
     DestroyFonts();
 }
@@ -114,11 +118,9 @@ void MainWindow::RegisterWindowClass() {
     wc.lpfnWndProc = StaticWindowProc;
     wc.hInstance = instance_;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-    wc.hbrBackground = CreateSolidBrush(AppConfig::kMainBackground);
-    wc.hIcon = static_cast<HICON>(LoadImageW(instance_, MAKEINTRESOURCEW(IDI_APP_ICON), IMAGE_ICON,
-        GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), LR_DEFAULTCOLOR));
-    wc.hIconSm = static_cast<HICON>(LoadImageW(instance_, MAKEINTRESOURCEW(IDI_APP_ICON), IMAGE_ICON,
-        GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR));
+    wc.hbrBackground = nullptr;
+    wc.hIcon = nullptr;
+    wc.hIconSm = nullptr;
     wc.lpszClassName = kClassName;
     wc.style = CS_HREDRAW | CS_VREDRAW;
     RegisterClassExW(&wc);
@@ -128,17 +130,21 @@ void MainWindow::CreateFonts() {
     uiFont_ = Theme::CreateUiFont(-22);
     titleFont_ = Theme::CreateUiFont(-20);
     totalFont_ = Theme::CreateMonoFont(-60, FW_BOLD);
+    backgroundBrush_ = CreateSolidBrush(AppConfig::kMainBackground);
 }
 
 void MainWindow::DestroyFonts() {
     if (uiFont_ != nullptr) {
         DeleteObject(uiFont_);
+        uiFont_ = nullptr;
     }
     if (titleFont_ != nullptr) {
         DeleteObject(titleFont_);
+        titleFont_ = nullptr;
     }
     if (totalFont_ != nullptr) {
         DeleteObject(totalFont_);
+        totalFont_ = nullptr;
     }
 }
 
@@ -182,8 +188,13 @@ LRESULT MainWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
         HDC dc = reinterpret_cast<HDC>(wParam);
         SetTextColor(dc, AppConfig::kTextColor);
         SetBkColor(dc, AppConfig::kMainBackground);
-        static HBRUSH backgroundBrush = CreateSolidBrush(AppConfig::kMainBackground);
-        return reinterpret_cast<INT_PTR>(backgroundBrush);
+        return reinterpret_cast<INT_PTR>(backgroundBrush_);
+    }
+    case WM_ERASEBKGND: {
+        RECT client{};
+        GetClientRect(hwnd_, &client);
+        FillRect(reinterpret_cast<HDC>(wParam), &client, backgroundBrush_);
+        return 1;
     }
     case WM_COMMAND: {
         const int controlId = LOWORD(wParam);
@@ -487,13 +498,9 @@ void MainWindow::DrawOwnerButton(const DRAWITEMSTRUCT* drawItem) {
 
         RECT textRect = drawItem->rcItem;
         textRect.left += 42;
-        HFONT font = Theme::CreateUiFont(-20);
-        Theme::DrawCenteredText(drawItem->hDC, textRect, caption, AppConfig::kTextColor, font);
-        DeleteObject(font);
+        Theme::DrawCenteredText(drawItem->hDC, textRect, caption, AppConfig::kTextColor, uiFont_);
     } else {
-        HFONT font = Theme::CreateUiFont(-20);
-        Theme::DrawCenteredText(drawItem->hDC, drawItem->rcItem, caption, RGB(0xee, 0xee, 0xee), font);
-        DeleteObject(font);
+        Theme::DrawCenteredText(drawItem->hDC, drawItem->rcItem, caption, RGB(0xee, 0xee, 0xee), uiFont_);
     }
 }
 

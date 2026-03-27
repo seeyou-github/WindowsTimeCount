@@ -24,6 +24,7 @@ private:
 
     HINSTANCE instance_;
     HWND hwnd_;
+    HFONT overlayFont_ = nullptr;
     std::wstring timeText_;
     int remainingSeconds_;
     int totalSeconds_;

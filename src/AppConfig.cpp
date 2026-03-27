@@ -16,7 +16,7 @@ std::wstring FormatDuration(int totalSeconds) {
     std::wstringstream builder;
     builder << std::setfill(L'0');
 
-    if (safeSeconds <= 3600) {
+    if (safeSeconds < 3600) {
         builder << std::setw(2) << (hours * 60 + minutes)
                 << L":" << std::setw(2) << seconds;
     } else {

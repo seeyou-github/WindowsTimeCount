@@ -23,6 +23,9 @@ private:
     HINSTANCE instance_;
     HWND hwnd_;
     HWND button_;
+    HFONT buttonFont_ = nullptr;
+    HFONT iconFont_ = nullptr;
+    HFONT textFont_ = nullptr;
     std::wstring title_;
     std::wstring message_;
     std::wstring buttonText_;
