@@ -27,6 +27,26 @@ COLORREF ResolveButtonColor(int controlId, bool isSelected) {
     return isSelected ? AppConfig::kButtonPressedBackground : AppConfig::kButtonBackground;
 }
 
+void ShowWindowWithoutWhiteFlash(HWND hwnd, int showCommand) {
+    if (hwnd == nullptr || !IsWindow(hwnd)) {
+        return;
+    }
+
+    const LONG_PTR originalExStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+    SetWindowLongPtrW(hwnd, GWL_EXSTYLE, originalExStyle | WS_EX_LAYERED);
+    SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
+
+    ShowWindow(hwnd, showCommand);
+    UpdateWindow(hwnd);
+    RedrawWindow(hwnd, nullptr, nullptr,
+                 RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN | RDW_FRAME);
+
+    SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
+    SetWindowLongPtrW(hwnd, GWL_EXSTYLE, originalExStyle);
+    SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+}
+
 }  // namespace
 
 MainWindow::MainWindow(HINSTANCE instance)
@@ -101,8 +121,7 @@ bool MainWindow::Create() {
 }
 
 int MainWindow::Run() {
-    ShowWindow(hwnd_, SW_SHOW);
-    UpdateWindow(hwnd_);
+    ShowWindowWithoutWhiteFlash(hwnd_, SW_SHOW);
 
     MSG msg{};
     while (GetMessageW(&msg, nullptr, 0, 0)) {
@@ -579,8 +598,7 @@ void MainWindow::MinimizeToTray() {
 
 void MainWindow::RestoreFromTray() {
     RemoveTrayIcon();
-    ShowWindow(hwnd_, SW_SHOW);
-    ShowWindow(hwnd_, SW_RESTORE);
+    ShowWindowWithoutWhiteFlash(hwnd_, SW_RESTORE);
     SetForegroundWindow(hwnd_);
 }
 
